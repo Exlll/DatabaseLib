@@ -1,0 +1,60 @@
+allprojects {
+    group 'de.exlll'
+    version '1.0.0'
+}
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.exlll.de/artifactory/releases/' }
+    }
+
+    configurations {
+        bundle
+    }
+
+    dependencies {
+        bundle group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
+        bundle group: 'de.exlll', name: 'configlib-core', version: '1.0.0'
+        bundle group: 'de.exlll', name: 'asynclib-core', version: '1.0.0'
+        compile group: 'de.exlll', name: 'configlib-core', version: '1.0.0'
+        compile group: 'de.exlll', name: 'asynclib-core', version: '1.0.0'
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
+    }
+}
+buildscript {
+    if (project.hasProperty("local_script")) {
+        apply from: file(local_script + "/buildscript.local.gradle"), to: buildscript
+    }
+}
+if (project.hasProperty("local_script")) {
+    apply from: file(local_script + "/build.local.gradle")
+}
+
+project(':databaselib-core') {
+    dependencies { compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0' }
+}
+project(':databaselib-bukkit') {
+    repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
+    dependencies {
+        compile project(':databaselib-core')
+        compile group: 'org.bukkit', name: 'bukkit', version: '1.11.2-R0.1-SNAPSHOT'
+    }
+    jar {
+        from { project(':databaselib-core').sourceSets.main.output }
+        from { configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) } }
+    }
+}
+project(':databaselib-bungee') {
+    repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
+    dependencies {
+        compile project(':databaselib-core')
+        compile group: 'net.md-5', name: 'bungeecord-api', version: '1.10-SNAPSHOT'
+    }
+    jar {
+        from { project(':databaselib-core').sourceSets.main.output }
+        from { configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) } }
+    }
+}
