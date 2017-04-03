@@ -1,6 +1,7 @@
 package de.exlll.databaselib.submit;
 
 import java.sql.Connection;
+import java.sql.Statement;
 import java.util.function.BiConsumer;
 
 /**
@@ -8,7 +9,8 @@ import java.util.function.BiConsumer;
  * @param <R> type of the value returned
  */
 public abstract class SqlTask<T, R> {
-    public static final int DEFAULT_QUERY_TIMEOUT = 5;
+    protected static final CheckedSqlConsumer<? super Statement> DEFAULT_STATEMENT_CONFIGURATOR =
+            statement -> statement.setQueryTimeout(5);
     protected final CheckedSqlFunction<T, R> function;
     protected final BiConsumer<? super R, Exception> callback;
     protected R result;

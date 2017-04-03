@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.function.BiConsumer;
 
 public final class SqlStatementTask<R> extends SqlTask<Statement, R> {
-    private int timeoutInSeconds = DEFAULT_QUERY_TIMEOUT;
-
     public SqlStatementTask(
             CheckedSqlFunction<Statement, R> function,
             BiConsumer<? super R, Exception> callback) {
@@ -16,20 +14,11 @@ public final class SqlStatementTask<R> extends SqlTask<Statement, R> {
     @Override
     public void execute(Connection connection) {
         try (Statement stmt = connection.createStatement()) {
-            stmt.setQueryTimeout(timeoutInSeconds);
+            DEFAULT_STATEMENT_CONFIGURATOR.accept(stmt);
             result = function.apply(stmt);
         } catch (Exception e) {
             exception = e;
         }
-    }
-
-    public int getTimeoutInSeconds() {
-        return timeoutInSeconds;
-    }
-
-    public SqlStatementTask<R> setTimeoutInSeconds(int timeoutInSeconds) {
-        this.timeoutInSeconds = timeoutInSeconds;
-        return this;
     }
 
     @Override
@@ -44,7 +33,6 @@ public final class SqlStatementTask<R> extends SqlTask<Statement, R> {
                 "result=" + result +
                 ", exception=" + exception +
                 ", priority=" + priority +
-                ", timeoutInSeconds=" + timeoutInSeconds +
                 '}';
     }
 }

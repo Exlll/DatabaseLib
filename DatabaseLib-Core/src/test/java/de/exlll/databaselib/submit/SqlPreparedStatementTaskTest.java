@@ -23,7 +23,7 @@ public class SqlPreparedStatementTaskTest {
         SqlPreparedStatementTask<?> task = new SqlPreparedStatementTask<>(
                 "",
                 statement -> {
-                    assertThat(statement.getQueryTimeout(), is(SqlTask.DEFAULT_QUERY_TIMEOUT));
+                    assertThat(statement.getQueryTimeout(), is(5));
                     return null;
                 }, null
         );

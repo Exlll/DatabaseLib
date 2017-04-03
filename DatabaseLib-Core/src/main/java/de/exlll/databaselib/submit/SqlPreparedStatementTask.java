@@ -9,7 +9,6 @@ import java.util.function.BiConsumer;
 public final class SqlPreparedStatementTask<R> extends SqlTask<PreparedStatement, R> {
     private final String query;
     private PreparationStrategy preparationStrategy = PreparationStrategy.DEFAULT;
-    private int timeoutInSeconds = DEFAULT_QUERY_TIMEOUT;
 
     public SqlPreparedStatementTask(
             String query,
@@ -22,20 +21,11 @@ public final class SqlPreparedStatementTask<R> extends SqlTask<PreparedStatement
     @Override
     public void execute(Connection connection) {
         try (PreparedStatement stmt = preparationStrategy.prepare(connection, query)) {
-            stmt.setQueryTimeout(timeoutInSeconds);
+            DEFAULT_STATEMENT_CONFIGURATOR.accept(stmt);
             result = function.apply(stmt);
         } catch (Exception e) {
             exception = e;
         }
-    }
-
-    public int getTimeoutInSeconds() {
-        return timeoutInSeconds;
-    }
-
-    public SqlPreparedStatementTask<R> setTimeoutInSeconds(int timeoutInSeconds) {
-        this.timeoutInSeconds = timeoutInSeconds;
-        return this;
     }
 
     @Override
@@ -61,7 +51,6 @@ public final class SqlPreparedStatementTask<R> extends SqlTask<PreparedStatement
                 ", exception=" + exception +
                 ", query=" + query +
                 ", priority=" + priority +
-                ", timeoutInSeconds=" + timeoutInSeconds +
                 '}';
     }
 }

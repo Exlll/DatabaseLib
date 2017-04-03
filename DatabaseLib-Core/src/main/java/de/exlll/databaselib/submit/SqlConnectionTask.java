@@ -20,6 +20,12 @@ public final class SqlConnectionTask<R> extends SqlTask<Connection, R> {
     }
 
     @Override
+    public SqlConnectionTask<R> setPriority(TaskPriority priority) {
+        super.setPriority(priority);
+        return this;
+    }
+
+    @Override
     public String toString() {
         return "SqlConnectionTask{" +
                 "result=" + result +
