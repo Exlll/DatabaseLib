@@ -6,6 +6,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class DatabaseLib extends Plugin {
@@ -13,7 +14,13 @@ public final class DatabaseLib extends Plugin {
 
     @Override
     public void onEnable() {
-        controller = new DatabaseController(getDataFolder());
+        try {
+            controller = new DatabaseController(getDataFolder());
+        } catch (RuntimeException e) {
+            getLogger().log(Level.SEVERE, "DatabaseLib initialization failed.");
+            getLogger().log(Level.SEVERE, "Failed with: \"" + e.getMessage() + "\"");
+            return;
+        }
 
         ProxyServer.getInstance().getScheduler().schedule(
                 this,
@@ -43,7 +50,7 @@ public final class DatabaseLib extends Plugin {
 
     private static void checkControllerState() {
         if (controller == null) {
-            throw new IllegalStateException("controller not initialized");
+            throw new IllegalStateException("DatabaseLib plugin not initialized.");
         }
     }
 

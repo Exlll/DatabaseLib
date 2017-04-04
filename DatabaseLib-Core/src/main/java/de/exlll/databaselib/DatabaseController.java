@@ -36,14 +36,14 @@ final class DatabaseController {
 
     SqlConnectionPool getPool() {
         if (connectionPool == null) {
-            throw new IllegalStateException("pool not initialized");
+            throw new IllegalStateException("DatabaseLib pool not initialized.");
         }
         return connectionPool;
     }
 
     PriorityTaskService getService() {
         if (priorityTaskService == null) {
-            throw new IllegalStateException("service not initialized");
+            throw new IllegalStateException("DatabaseLib service not initialized.");
         }
         return priorityTaskService;
     }

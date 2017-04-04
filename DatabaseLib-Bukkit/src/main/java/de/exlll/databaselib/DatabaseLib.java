@@ -5,6 +5,7 @@ import de.exlll.databaselib.pool.SqlConnectionPool;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class DatabaseLib extends JavaPlugin {
@@ -12,7 +13,14 @@ public final class DatabaseLib extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        controller = new DatabaseController(getDataFolder());
+        try {
+            controller = new DatabaseController(getDataFolder());
+        } catch (RuntimeException e) {
+            getLogger().log(Level.SEVERE, "DatabaseLib initialization failed.");
+            getLogger().log(Level.SEVERE, "Failed with: \"" + e.getMessage() + "\"");
+            getPluginLoader().disablePlugin(this);
+            return;
+        }
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 this,
@@ -41,7 +49,7 @@ public final class DatabaseLib extends JavaPlugin {
 
     private static void checkControllerState() {
         if (controller == null) {
-            throw new IllegalStateException("controller not initialized");
+            throw new IllegalStateException("DatabaseLib plugin not initialized.");
         }
     }
 
