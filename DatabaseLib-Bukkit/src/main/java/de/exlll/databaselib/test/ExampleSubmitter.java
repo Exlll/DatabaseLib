@@ -129,7 +129,7 @@ final class ExampleSubmitter extends BukkitSqlTaskSubmitter {
                 }, exceptionCallback);
 
         voidPreparedStatementTask
-                .setPreparationStrategy(PreparationStrategy.DEFAULT)
+                .setPreparationStrategy(PreparationStrategy.PREPARED_STATEMENT_DEFAULT)
                 .setPriority(TaskPriority.LOW);
         submit(voidPreparedStatementTask);
 
@@ -159,7 +159,9 @@ final class ExampleSubmitter extends BukkitSqlTaskSubmitter {
                     // ...do something with the callableStatement
                 }, exceptionCallback);
 
-        voidCallableStatementTask.setPriority(TaskPriority.LOW);
+        voidCallableStatementTask
+                .setPreparationStrategy(PreparationStrategy.CALLABLE_STATEMENT_DEFAULT)
+                .setPriority(TaskPriority.LOW);
         submit(voidCallableStatementTask);
 
 
@@ -170,7 +172,9 @@ final class ExampleSubmitter extends BukkitSqlTaskSubmitter {
                     return "4";
                 }, resultExceptionCallback);
 
-        resultCallableStatementTask.setPriority(TaskPriority.HIGH);
+        resultCallableStatementTask
+                .setPreparationStrategy(PreparationStrategy.CALLABLE_STATEMENT_DEFAULT)
+                .setPriority(TaskPriority.HIGH);
         submit(resultCallableStatementTask);
     }
 

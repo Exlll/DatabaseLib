@@ -8,7 +8,8 @@ import java.util.function.BiConsumer;
 
 public final class SqlPreparedStatementTask<R> extends SqlTask<PreparedStatement, R> {
     private final String query;
-    private PreparationStrategy preparationStrategy = PreparationStrategy.DEFAULT;
+    private PreparationStrategy<PreparedStatement> preparationStrategy =
+            PreparationStrategy.PREPARED_STATEMENT_DEFAULT;
 
     public SqlPreparedStatementTask(
             String query,
@@ -34,12 +35,8 @@ public final class SqlPreparedStatementTask<R> extends SqlTask<PreparedStatement
         return this;
     }
 
-    public PreparationStrategy getPreparationStrategy() {
-        return preparationStrategy;
-    }
-
     public SqlPreparedStatementTask<R> setPreparationStrategy(
-            PreparationStrategy preparationStrategy) {
+            PreparationStrategy<PreparedStatement> preparationStrategy) {
         this.preparationStrategy = preparationStrategy;
         return this;
     }

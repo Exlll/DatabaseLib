@@ -1,11 +1,15 @@
 package de.exlll.databaselib.submit;
 
+import de.exlll.databaselib.submit.configure.PreparationStrategy;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.util.function.BiConsumer;
 
 public final class SqlCallableStatementTask<R> extends SqlTask<CallableStatement, R> {
     private final String query;
+    private PreparationStrategy<CallableStatement> preparationStrategy =
+            PreparationStrategy.CALLABLE_STATEMENT_DEFAULT;
 
     public SqlCallableStatementTask(
             String query,
@@ -17,7 +21,7 @@ public final class SqlCallableStatementTask<R> extends SqlTask<CallableStatement
 
     @Override
     public void execute(Connection connection) {
-        try (CallableStatement stmt = connection.prepareCall(query)) {
+        try (CallableStatement stmt = preparationStrategy.prepare(connection, query)) {
             DEFAULT_STATEMENT_CONFIGURATOR.accept(stmt);
             result = function.apply(stmt);
         } catch (Exception e) {
@@ -28,6 +32,12 @@ public final class SqlCallableStatementTask<R> extends SqlTask<CallableStatement
     @Override
     public SqlCallableStatementTask<R> setPriority(TaskPriority priority) {
         super.setPriority(priority);
+        return this;
+    }
+
+    public SqlCallableStatementTask<R> setPreparationStrategy(
+            PreparationStrategy<CallableStatement> preparationStrategy) {
+        this.preparationStrategy = preparationStrategy;
         return this;
     }
 

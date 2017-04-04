@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class DummyConnection implements Connection {
     public AtomicInteger prepareStatementCalls = new AtomicInteger();
+    public AtomicInteger prepareCallCalls = new AtomicInteger();
+
     public static final class DummyStatement implements CallableStatement {
         private int timeout;
 
@@ -1091,6 +1093,7 @@ public class DummyConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql) throws SQLException {
+        prepareCallCalls.addAndGet(1);
         return new DummyStatement();
     }
 
@@ -1186,6 +1189,7 @@ public class DummyConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        prepareCallCalls.addAndGet(2);
         return null;
     }
 
@@ -1241,6 +1245,7 @@ public class DummyConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        prepareCallCalls.addAndGet(4);
         return null;
     }
 
