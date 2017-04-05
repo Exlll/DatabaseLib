@@ -1,4 +1,4 @@
-package de.exlll.databaselib.test;
+package de.exlll.databaselib.example;
 
 import de.exlll.databaselib.PluginInfo;
 import de.exlll.databaselib.submit.*;

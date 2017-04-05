@@ -1,4 +1,4 @@
-package de.exlll.databaselib.test;
+package de.exlll.databaselib.example;
 
 import de.exlll.databaselib.DatabaseLib;
 import de.exlll.databaselib.PluginInfo;
@@ -13,7 +13,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public class ExamplePlugin extends JavaPlugin {
+class ExamplePlugin extends JavaPlugin {
 
     // Bungee plugins have to extend BungeeSqlTaskSubmitter instead
     public static final class TestSubmitter extends BukkitSqlTaskSubmitter {
