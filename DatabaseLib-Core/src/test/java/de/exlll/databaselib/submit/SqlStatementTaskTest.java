@@ -1,5 +1,6 @@
 package de.exlll.databaselib.submit;
 
+import de.exlll.databaselib.DummyConnection;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;

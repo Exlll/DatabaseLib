@@ -1,5 +1,6 @@
 package de.exlll.databaselib.submit;
 
+import de.exlll.databaselib.DummyConnection;
 import de.exlll.databaselib.submit.configure.PreparationStrategy;
 import org.junit.Test;
 
