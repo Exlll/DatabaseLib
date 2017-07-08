@@ -22,9 +22,9 @@ public final class HikariConnectionPool implements SqlConnectionPool {
         config.setUsername(poolConfig.getUsername());
         config.setPassword(poolConfig.getPassword());
 
-        config.setMaximumPoolSize(poolConfig.getMaxPoolSize());
-        config.setMinimumIdle(poolConfig.getMinIdle());
-        poolConfig.getProperties().forEach(config::addDataSourceProperty);
+        config.setMaximumPoolSize(poolConfig.getMaximumPoolSize());
+        config.setMinimumIdle(poolConfig.getCorePoolSize());
+        poolConfig.getDriverProperties().forEach(config::addDataSourceProperty);
 
         dataSource = new HikariDataSource(config);
     }

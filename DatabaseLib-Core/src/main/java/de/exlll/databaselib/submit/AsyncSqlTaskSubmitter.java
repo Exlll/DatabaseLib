@@ -1,31 +1,30 @@
 package de.exlll.databaselib.submit;
 
-import de.exlll.asynclib.service.PriorityTaskService;
+import de.exlll.asynclib.exec.TaskExecutor;
 import de.exlll.asynclib.task.AsyncTask;
-import de.exlll.databaselib.PluginInfo;
 import de.exlll.databaselib.pool.SqlConnectionPool;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 class AsyncSqlTaskSubmitter extends SqlTaskSubmitter {
     protected final PluginInfo pluginInfo;
     private final SqlConnectionPool connectionPool;
-    private final PriorityTaskService priorityTaskService;
+    private final TaskExecutor executor;
 
     AsyncSqlTaskSubmitter(
             PluginInfo pluginInfo,
             SqlConnectionPool connectionPool,
-            PriorityTaskService priorityTaskService) {
+            TaskExecutor executor) {
         this.pluginInfo = pluginInfo;
         this.connectionPool = connectionPool;
-        this.priorityTaskService = priorityTaskService;
+        this.executor = executor;
     }
 
     @Override
     protected final void submit(SqlTask<?, ?> task) {
-        int priority = task.getPriority().intValue();
-        priorityTaskService.execute(new AsyncSqlTask(task), priority);
+        executor.execute(new AsyncSqlTask(task), task.getPriority());
     }
 
     @Override
@@ -60,6 +59,24 @@ class AsyncSqlTaskSubmitter extends SqlTaskSubmitter {
                     "pluginName=" + pluginInfo.getName() +
                     ", sqlTask=" + sqlTask +
                     '}';
+        }
+    }
+
+    protected static final class PluginInfo {
+        private final String pluginName;
+        private final Logger pluginLogger;
+
+        PluginInfo(String name, Logger logger) {
+            this.pluginName = name;
+            this.pluginLogger = logger;
+        }
+
+        public String getName() {
+            return pluginName;
+        }
+
+        public Logger getLogger() {
+            return pluginLogger;
         }
     }
 }

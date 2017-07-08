@@ -1,33 +1,18 @@
 package de.exlll.databaselib;
 
-import de.exlll.asynclib.service.PriorityTaskService;
+import de.exlll.asynclib.exec.PluginTaskService;
+import de.exlll.asynclib.exec.ServiceConfig;
+import de.exlll.asynclib.exec.TaskExecutor;
+import de.exlll.asynclib.exec.TaskService;
 import de.exlll.databaselib.pool.SqlConnectionPool;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class DatabaseLib extends JavaPlugin {
     private static DatabaseController controller;
 
     @Override
     public void onEnable() {
-        try {
-            controller = new DatabaseController(getDataFolder());
-        } catch (RuntimeException e) {
-            getLogger().log(Level.SEVERE, "DatabaseLib initialization failed.");
-            getLogger().log(Level.SEVERE, "Failed with: \"" + e.getMessage() + "\"");
-            getPluginLoader().disablePlugin(this);
-            return;
-        }
-
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                this,
-                controller.getService()::finishTasks,
-                0,
-                controller.getServiceConfig().getPollPeriod()
-        );
+        controller = new PluginDatabaseController();
     }
 
     @Override
@@ -37,12 +22,12 @@ public final class DatabaseLib extends JavaPlugin {
         }
     }
 
-    public static SqlConnectionPool getPool() {
+    public static SqlConnectionPool getMainPool() {
         checkControllerState();
         return controller.getPool();
     }
 
-    public static PriorityTaskService getService() {
+    public static TaskExecutor getExecutor() {
         checkControllerState();
         return controller.getService();
     }
@@ -53,25 +38,14 @@ public final class DatabaseLib extends JavaPlugin {
         }
     }
 
-    public static PluginInfo fromPlugin(JavaPlugin plugin) {
-        return new BukkitPluginInfo(plugin);
-    }
-
-    private static final class BukkitPluginInfo implements PluginInfo {
-        private final JavaPlugin plugin;
-
-        private BukkitPluginInfo(JavaPlugin plugin) {
-            this.plugin = plugin;
+    private final class PluginDatabaseController extends DatabaseController {
+        private PluginDatabaseController() {
+            super(DatabaseLib.this.getDataFolder());
         }
 
         @Override
-        public String getName() {
-            return plugin.getName();
-        }
-
-        @Override
-        public Logger getLogger() {
-            return plugin.getLogger();
+        protected TaskService createService(ServiceConfig config) {
+            return new PluginTaskService(DatabaseLib.this, config);
         }
     }
 }

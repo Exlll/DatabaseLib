@@ -1,34 +1,18 @@
 package de.exlll.databaselib;
 
-import de.exlll.asynclib.service.PriorityTaskService;
+import de.exlll.asynclib.exec.PluginTaskService;
+import de.exlll.asynclib.exec.ServiceConfig;
+import de.exlll.asynclib.exec.TaskExecutor;
+import de.exlll.asynclib.exec.TaskService;
 import de.exlll.databaselib.pool.SqlConnectionPool;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
-
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class DatabaseLib extends Plugin {
     private static DatabaseController controller;
 
     @Override
     public void onEnable() {
-        try {
-            controller = new DatabaseController(getDataFolder());
-        } catch (RuntimeException e) {
-            getLogger().log(Level.SEVERE, "DatabaseLib initialization failed.");
-            getLogger().log(Level.SEVERE, "Failed with: \"" + e.getMessage() + "\"");
-            return;
-        }
-
-        ProxyServer.getInstance().getScheduler().schedule(
-                this,
-                controller.getService()::finishTasks,
-                0,
-                controller.getServiceConfig().getPollPeriod() * 50,
-                TimeUnit.MILLISECONDS
-        );
+        controller = new PluginDatabaseController();
     }
 
     @Override
@@ -38,12 +22,12 @@ public final class DatabaseLib extends Plugin {
         }
     }
 
-    public static SqlConnectionPool getPool() {
+    public static SqlConnectionPool getMainPool() {
         checkControllerState();
         return controller.getPool();
     }
 
-    public static PriorityTaskService getService() {
+    public static TaskExecutor getExecutor() {
         checkControllerState();
         return controller.getService();
     }
@@ -54,25 +38,14 @@ public final class DatabaseLib extends Plugin {
         }
     }
 
-    public static PluginInfo fromPlugin(Plugin plugin) {
-        return new BungeePluginInfo(plugin);
-    }
-
-    private static final class BungeePluginInfo implements PluginInfo {
-        private final Plugin plugin;
-
-        private BungeePluginInfo(Plugin plugin) {
-            this.plugin = plugin;
+    private final class PluginDatabaseController extends DatabaseController {
+        private PluginDatabaseController() {
+            super(DatabaseLib.this.getDataFolder());
         }
 
         @Override
-        public String getName() {
-            return plugin.getDescription().getName();
-        }
-
-        @Override
-        public Logger getLogger() {
-            return plugin.getLogger();
+        protected TaskService createService(ServiceConfig config) {
+            return new PluginTaskService(DatabaseLib.this, config);
         }
     }
 }

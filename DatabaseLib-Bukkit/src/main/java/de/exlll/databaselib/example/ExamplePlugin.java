@@ -1,9 +1,7 @@
 package de.exlll.databaselib.example;
 
-import de.exlll.databaselib.DatabaseLib;
-import de.exlll.databaselib.PluginInfo;
-import de.exlll.databaselib.submit.BukkitSqlTaskSubmitter;
-import de.exlll.databaselib.submit.TaskPriority;
+import de.exlll.asynclib.exec.TaskPriority;
+import de.exlll.databaselib.submit.PluginSqlTaskSubmitter;
 import de.exlll.databaselib.submit.SqlPreparedStatementTask;
 import de.exlll.databaselib.submit.configure.PreparationStrategy;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,9 +14,9 @@ import java.util.logging.Level;
 class ExamplePlugin extends JavaPlugin {
 
     // Bungee plugins have to extend BungeeSqlTaskSubmitter instead
-    public static final class TestSubmitter extends BukkitSqlTaskSubmitter {
-        public TestSubmitter(PluginInfo pluginInfo) {
-            super(pluginInfo);
+    public static final class TestSubmitter extends PluginSqlTaskSubmitter {
+        public TestSubmitter(JavaPlugin plugin) {
+            super(plugin);
         }
 
         public void getUserNameById(int userId, BiConsumer<String, Exception> callback) {
@@ -64,9 +62,7 @@ class ExamplePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        PluginInfo pluginInfo = DatabaseLib.fromPlugin(this);
-
-        TestSubmitter submitter = new TestSubmitter(pluginInfo);
+        TestSubmitter submitter = new TestSubmitter(this);
         submitter.createTable(); // this call is synchronous!
 
         submitter.insertUser("User1", exception -> {

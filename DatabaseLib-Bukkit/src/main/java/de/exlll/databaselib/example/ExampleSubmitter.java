@@ -1,8 +1,9 @@
 package de.exlll.databaselib.example;
 
-import de.exlll.databaselib.PluginInfo;
+import de.exlll.asynclib.exec.TaskPriority;
 import de.exlll.databaselib.submit.*;
 import de.exlll.databaselib.submit.configure.PreparationStrategy;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,9 +12,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-final class ExampleSubmitter extends BukkitSqlTaskSubmitter {
-    public ExampleSubmitter(PluginInfo pluginInfo) {
-        super(pluginInfo);
+final class ExampleSubmitter extends PluginSqlTaskSubmitter {
+    public ExampleSubmitter(JavaPlugin plugin) {
+        super(plugin);
     }
 
     Consumer<Exception> exceptionCallback = exception ->

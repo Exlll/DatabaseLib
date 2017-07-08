@@ -1,5 +1,6 @@
 package de.exlll.databaselib.submit;
 
+import de.exlll.asynclib.exec.TaskPriority;
 import de.exlll.databaselib.submit.configure.PreparationStrategy;
 
 import java.sql.Connection;

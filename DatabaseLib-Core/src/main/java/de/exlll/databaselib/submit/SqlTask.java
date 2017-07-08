@@ -1,5 +1,7 @@
 package de.exlll.databaselib.submit;
 
+import de.exlll.asynclib.exec.TaskPriority;
+
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.function.BiConsumer;

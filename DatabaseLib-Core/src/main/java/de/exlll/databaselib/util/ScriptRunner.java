@@ -36,6 +36,9 @@ public final class ScriptRunner {
 
     /**
      * Executes all queries from the given {@code InputStream}.
+     * <p>
+     * The {@code Connection} and the {@code  InputStream} are
+     * by default closed after all queries have been executed.
      *
      * @throws SQLException if a database access error occurred or
      *                      if at least on of the queries failed
