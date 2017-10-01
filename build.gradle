@@ -41,7 +41,7 @@ project(':databaselib-bukkit') {
     repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
     dependencies {
         compile group: 'de.exlll', name: 'asynclib-bukkit', version: '2.+'
-        compile group: 'org.bukkit', name: 'bukkit', version: '1.11.2-R0.1-SNAPSHOT'
+        compile group: 'org.bukkit', name: 'bukkit', version: '1.12.2-R0.1-SNAPSHOT'
         bundleWithPlugins group: 'de.exlll', name: 'asynclib-bukkit', version: '2.+', transitive: false
     }
 }
@@ -49,7 +49,7 @@ project(':databaselib-bungee') {
     repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
     dependencies {
         compile group: 'de.exlll', name: 'asynclib-bungee', version: '2.+'
-        compile group: 'net.md-5', name: 'bungeecord-api', version: '1.10-SNAPSHOT'
+        compile group: 'net.md-5', name: 'bungeecord-api', version: '1.12-SNAPSHOT'
         bundleWithPlugins group: 'de.exlll', name: 'asynclib-bungee', version: '2.+', transitive: false
     }
 }

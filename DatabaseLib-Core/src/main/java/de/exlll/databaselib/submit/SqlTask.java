@@ -15,8 +15,8 @@ public abstract class SqlTask<T, R> {
             statement -> statement.setQueryTimeout(5);
     protected final CheckedSqlFunction<T, R> function;
     protected final BiConsumer<? super R, Exception> callback;
-    protected R result;
-    protected Exception exception;
+    protected volatile R result;
+    protected volatile Exception exception;
     protected TaskPriority priority = TaskPriority.NORMAL;
 
     public SqlTask(CheckedSqlFunction<T, R> function,
