@@ -1,51 +1,37 @@
 package de.exlll.databaselib;
 
-import de.exlll.asynclib.exec.PluginTaskService;
-import de.exlll.asynclib.exec.ServiceConfig;
-import de.exlll.asynclib.exec.TaskExecutor;
-import de.exlll.asynclib.exec.TaskService;
-import de.exlll.databaselib.pool.SqlConnectionPool;
+import de.exlll.databaselib.sql.pool.SqlConnectionPool;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DatabaseLib extends JavaPlugin {
-    private static DatabaseController controller;
+    private static DatabaseLibService databaseLibService;
 
     @Override
     public void onEnable() {
-        controller = new PluginDatabaseController();
+        databaseLibService = new DatabaseLibService(getDataFolder());
+        databaseLibService.onEnable();
     }
 
     @Override
     public void onDisable() {
-        if (controller != null) {
-            controller.stop();
-        }
+        databaseLibService.onDisable();
     }
 
+    /**
+     * Returns the main pool.
+     *
+     * @return the main pool
+     * @throws IllegalStateException if main pool not initialized
+     */
     public static SqlConnectionPool getMainPool() {
-        checkControllerState();
-        return controller.getPool();
+        checkDatabaseLibServiceInitialized();
+        return databaseLibService.getSqlConnectionPool();
     }
 
-    public static TaskExecutor getExecutor() {
-        checkControllerState();
-        return controller.getService();
-    }
-
-    private static void checkControllerState() {
-        if (controller == null) {
-            throw new IllegalStateException("DatabaseLib plugin not initialized.");
-        }
-    }
-
-    private final class PluginDatabaseController extends DatabaseController {
-        private PluginDatabaseController() {
-            super(DatabaseLib.this.getDataFolder());
-        }
-
-        @Override
-        protected TaskService createService(ServiceConfig config) {
-            return new PluginTaskService(DatabaseLib.this, config);
+    private static void checkDatabaseLibServiceInitialized() {
+        if (databaseLibService == null) {
+            String msg = "The DatabaseLib plugin has not been initialized yet.";
+            throw new IllegalStateException(msg);
         }
     }
 }

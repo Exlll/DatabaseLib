@@ -1,68 +1,6 @@
-# DatabaseLib v3
-## How-to
-#### Installation
-1. Put the .jar in the plugin folder
-2. Start the server
-3. Stop the server
-4. Configure the config.yml and sql_pool.yml
-5. Start the server again
-#### Usage
-1. Create a new class (or use a preexisting one) and `extend  PluginSqlTaskSubmitter`.
-2. Create a new instance of your class by either passing a `JavaPlugin` (Bukkit) or a
-`Plugin` instance (BungeeCord).
+package de.exlll.databaselib.example.sql;
 
-Take a look at the examples below for a complete example of a Bukkit plugin.
-## General information
-#### Callbacks
-When you create or submit tasks, you have to pass a non-null callback.
-The type of the callback depends on whether the asynchronously executed method
-returns something or not. If the method doesn't return anything (i.e. there is no
-`return` statement), the type of the callback is `Consumer<Throwable>`.
-Otherwise, it is `BiConsumer<ReturnType, Throwable>`.
-
-Some examples:
-- if there is no `return` statement, pass a `Consumer<Throwable>`
-- if you return an `Integer`, pass a `BiConsumer<Integer, Throwable>`
-- if you return a `String`, pass a `BiConsumer<String, Throwable>`
-- in general: if you return something of type `R`, pass a `BiConsumer<? super R, Throwable>`
-
-#### Asynchronous execution of tasks
-All tasks that are submitted through one of the different `submit...` methods
-are executed asynchronously in whichever thread the library chooses. After
-a task completes (either normally or by throwing an exception), its
-callback method is executed in the server thread (Bukkit plugins) or in one
-of the plugin threads (Bungee plugins). If the task completes
-exceptionally, the `Throwable` passed to the callback is non-null.
-
-#### Closing Connections and Statements
-All library supplied `Connection`s and `Statement`s are closed automatically,
-so you don't have to call `close()` on them. However, you still need to close
-all `Statement`s you created yourself (e.g. when using an `SqlConnectionTask`).
-The only exception to this rule is when you use `getConnection()` (see next section).
-
-#### Synchronous execution of queries
-Sometimes you don't want to execute queries asynchronously. In these cases
-you can get a `Connection` directly from the pool by calling `getConnection()`.
-
-**You are responsible for closing the connection after usage.** If you forget
-to do so, the pool will run out of `Connection`s, so it's best to use a try-with-resources
-block wherever possible when acquiring them this way.
-
-**Be aware that a call to `getConnection()` is blocking.** If no `Connection` is available
-(e.g. because of the pool being empty), the thread in which this method
-is called will be blocked.
-
-#### Creating your own connection pools
-If your application submits many long-running tasks or you have some reason that
-makes it necessary for you to manage your own set of `Connection`s, you can instantiate a
-connection pool by using the static factory methods of the `SqlConnectionPool` class.
-To use these methods you have to pass a `SqlPoolConfig` instance which can be created by
-using a `SqlPoolConfig.Builder`. If you want your users to be able to manually configure
-your pool from a file, you can use a `SqlPoolConfiguration` to store its options.
-
-## Examples
-#### Complete Bukkit plugin example
-```java
+import de.exlll.databaselib.sql.pool.SqlConnectionPool;
 import de.exlll.databaselib.sql.submit.PluginSqlTaskSubmitter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -76,7 +14,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class ExamplePlugin extends JavaPlugin {
+final class ExamplePlugin extends JavaPlugin {
     private final Logger log = Logger.getLogger(ExamplePlugin.class.getName());
     private final Consumer<Throwable> exceptionLogger = throwable -> {
         if (throwable != null) {
@@ -167,10 +105,7 @@ final class UserRepository extends PluginSqlTaskSubmitter {
         }
     }
 }
-```
 
-#### Ways to submit tasks
-```java
 final class ExampleSubmitter extends PluginSqlTaskSubmitter {
     private final Consumer<Throwable> exceptionLogger = throwable -> {
         if (throwable != null) {
@@ -239,47 +174,3 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
         }, resultExceptionLogger);
     }
 }
-```
-## Import
-#### Maven
-```xml
-<repository>
-    <id>de.exlll</id>
-    <url>http://exlll.de:8081/artifactory/releases/</url>
-</repository>
-
-<!-- for Bukkit plugins -->
-<dependency>
-    <groupId>de.exlll</groupId>
-    <artifactId>databaselib-bukkit</artifactId>
-    <version>3.0.0</version>
-</dependency>
-
-<!-- for Bungee plugins -->
-<dependency>
-    <groupId>de.exlll</groupId>
-    <artifactId>databaselib-bungee</artifactId>
-    <version>3.0.0</version>
-</dependency>
-```
-#### Gradle
-```groovy
-repositories {
-    maven {
-        url 'http://exlll.de:8081/artifactory/releases/'
-    }
-}
-dependencies {
-    // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.0.0'
-
-    // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.0.0'
-}
-```
-Additionally, you either have to import the Bukkit or BungeeCord API
-or disable transitive lookups. This project uses both of these APIs, so if you
-need an example of how to import them using Gradle, take a look at the `build.gradle`.
-
-If, for some reason, you have SSL errors that you're unable to resolve, you can
-use `http://exlll.de:8081/artifactory/releases/` as the repository instead.

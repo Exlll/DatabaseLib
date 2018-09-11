@@ -1,13 +1,13 @@
 allprojects {
     group 'de.exlll'
-    version '2.0.0'
+    version '3.0.0'
 }
 subprojects {
     apply plugin: 'java'
 
     repositories {
         mavenCentral()
-        maven { url 'https://repo.exlll.de/artifactory/releases/' }
+        maven { url 'http://exlll.de:8081/artifactory/releases/' }
     }
 
     configurations {
@@ -16,9 +16,11 @@ subprojects {
     }
 
     dependencies {
-        bundle group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
-        compile group: 'de.exlll', name: 'configlib-core', version: '1.+'
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        bundle group: 'com.zaxxer', name: 'HikariCP', version: '3.1.0'
+        compile group: 'de.exlll', name: 'configlib-core', version: '2.+'
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
+        testCompile group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.2.0'
+        testCompile group: 'org.junit.platform', name: 'junit-platform-suite-api', version: '1.2.0'
         testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
     }
 }
@@ -33,31 +35,25 @@ if (project.hasProperty("local_script")) {
 
 project(':databaselib-core') {
     dependencies {
-        compile group: 'de.exlll', name: 'asynclib-core', version: '2.+'
-        compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
+        compile group: 'com.zaxxer', name: 'HikariCP', version: '3.1.0'
     }
 }
 project(':databaselib-bukkit') {
     repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
     dependencies {
-        compile group: 'de.exlll', name: 'asynclib-bukkit', version: '2.+'
         compile group: 'org.bukkit', name: 'bukkit', version: '1.12.2-R0.1-SNAPSHOT'
-        bundleWithPlugins group: 'de.exlll', name: 'asynclib-bukkit', version: '2.+', transitive: false
     }
 }
 project(':databaselib-bungee') {
     repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
     dependencies {
-        compile group: 'de.exlll', name: 'asynclib-bungee', version: '2.+'
         compile group: 'net.md-5', name: 'bungeecord-api', version: '1.12-SNAPSHOT'
-        bundleWithPlugins group: 'de.exlll', name: 'asynclib-bungee', version: '2.+', transitive: false
     }
 }
 
 configure([project(':databaselib-bukkit'), project(':databaselib-bungee')]) {
     dependencies {
         compile project(':databaselib-core')
-        bundleWithPlugins group: 'de.exlll', name: 'configlib-core', version: '1.+', transitive: false
     }
     jar {
         from { project(':databaselib-core').sourceSets.main.output }
