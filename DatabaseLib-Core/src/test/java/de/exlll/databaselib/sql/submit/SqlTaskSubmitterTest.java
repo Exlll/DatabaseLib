@@ -1,9 +1,13 @@
 package de.exlll.databaselib.sql.submit;
 
+import de.exlll.databaselib.sql.DummyConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -15,10 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SqlTaskSubmitterTest {
     private TestSubmitter submitter;
+    private AtomicInteger callCounter;
 
     @BeforeEach
     void setUp() {
         submitter = new TestSubmitter();
+        callCounter = new AtomicInteger();
     }
 
     @Test
@@ -121,20 +127,124 @@ class SqlTaskSubmitterTest {
     }
 
     private void assertGotIncremented() {
-        assertThat(submitter.gotIncremented(), is(true));
+        submitter.assertGotIncremented();
+    }
+
+    @Test
+    void wrapCompletableFutureRequiresNonNullArgument() {
+        assertThrows(
+                NullPointerException.class,
+                () -> submitter.wrapCompletableFuture(null)
+        );
+    }
+
+    @Test
+    void wrappedCompletableFutureCompletes() throws Exception {
+        CompletableFuture<Integer> cf = new CompletableFuture<>();
+        BiConsumer<? super Integer, ? super Throwable> biConsumer =
+                submitter.wrapCompletableFuture(cf);
+        biConsumer.accept(1, null);
+        assertThat(cf.isDone() && !cf.isCancelled() && !cf.isCompletedExceptionally(), is(true));
+        assertThat(cf.get(), is(1));
+    }
+
+    @Test
+    void wrappedCompletableFutureCompletesExceptionally() {
+        CompletableFuture<Integer> cf = new CompletableFuture<>();
+        BiConsumer<? super Integer, ? super Throwable> biConsumer =
+                submitter.wrapCompletableFuture(cf);
+        biConsumer.accept(1, new Exception());
+        assertThat(cf.isDone() && !cf.isCancelled() && cf.isCompletedExceptionally(), is(true));
+        assertThrows(ExecutionException.class, cf::get);
+    }
+
+    @Test
+    void wrappedCompletableFutureIsWrappedByCallbackWrapper() {
+        CompletableFuture<Integer> cf = new CompletableFuture<>();
+        BiConsumer<? super Integer, ? super Throwable> biConsumer =
+                submitter.wrapCompletableFuture(cf);
+        biConsumer.accept(null, null);
+        assertThat(submitter.getInteger(), is(1));
+    }
+
+    @Test
+    void submitSqlConnectionTaskCompletesCompletableFuture() {
+        addStages(submitter.submitSqlConnectionTask(connection -> callCounter.addAndGet(1)));
+        assertThat(callCounter.get(), is(3));
+    }
+
+    @Test
+    void submitSqlConnectionTaskCompletesCompletableFutureExceptionally() {
+        addStages(submitter.submitSqlConnectionTask(connection -> {
+            throw new RuntimeException();
+        }));
+        assertThat(callCounter.get(), is(4));
+    }
+
+    @Test
+    void submitSqlStatementTaskCompletesCompletableFuture() {
+        addStages(submitter.submitSqlStatementTask(statement -> callCounter.addAndGet(1)));
+        assertThat(callCounter.get(), is(3));
+    }
+
+    @Test
+    void submitSqlStatementTaskCompletesCompletableFutureExceptionally() {
+        addStages(submitter.submitSqlStatementTask(statement -> {
+            throw new RuntimeException();
+        }));
+        assertThat(callCounter.get(), is(4));
+    }
+
+    @Test
+    void submitSqlPreparedStatementTaskCompletesCompletableFuture() {
+        addStages(submitter.submitSqlPreparedStatementTask("", statement -> callCounter.addAndGet(1)));
+        assertThat(callCounter.get(), is(3));
+    }
+
+    @Test
+    void submitSqlPreparedStatementTaskCompletesCompletableFutureExceptionally() {
+        addStages(submitter.submitSqlPreparedStatementTask("", statement -> {
+            throw new RuntimeException();
+        }));
+        assertThat(callCounter.get(), is(4));
+    }
+
+    @Test
+    void submitSqlCallableStatementTaskCompletesCompletableFuture() {
+        addStages(submitter.submitSqlCallableStatementTask("", statement -> callCounter.addAndGet(1)));
+        assertThat(callCounter.get(), is(3));
+    }
+
+    @Test
+    void submitSqlCallableStatementTaskCompletesCompletableFutureExceptionally() {
+        addStages(submitter.submitSqlCallableStatementTask("", statement -> {
+            throw new RuntimeException();
+        }));
+        assertThat(callCounter.get(), is(4));
+    }
+
+    private void addStages(CompletionStage<?> completableFuture) {
+        completableFuture.thenApply(i -> callCounter.addAndGet(2))
+                .exceptionally(throwable -> callCounter.addAndGet(4));
     }
 
     private static final class TestSubmitter extends SqlTaskSubmitter {
         private final AtomicInteger integer = new AtomicInteger();
+        private final DummyConnection connection = new DummyConnection();
 
-        boolean gotIncremented() {
-            return integer.get() == 2;
+        public int getInteger() {
+            return integer.get();
+        }
+
+        void assertGotIncremented() {
+            assertThat(integer.get(), is(2));
         }
 
         @Override
         protected void submit(SqlTask<?, ?> task) {
             assertThat(task, is(notNullValue()));
             integer.incrementAndGet();
+            task.execute(connection);
         }
 
         @Override

@@ -1,9 +1,12 @@
 allprojects {
     group 'de.exlll'
-    version '3.0.0'
+    version '3.1.0'
 }
 subprojects {
     apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     repositories {
         mavenCentral()

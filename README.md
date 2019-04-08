@@ -26,6 +26,11 @@ Some examples:
 - if you return a `String`, pass a `BiConsumer<String, Throwable>`
 - in general: if you return something of type `R`, pass a `BiConsumer<? super R, Throwable>`
 
+#### Task submission without callbacks (new in 3.1.0)
+You can submit tasks which don't require a callback method and which return a
+`CompletionStage`. The result of the `CompletionStage` is the result of the
+function that is given when the task is submitted.
+
 #### Asynchronous execution of tasks
 All tasks that are submitted through one of the different `submit...` methods
 are executed asynchronously in whichever thread the library chooses. After
@@ -71,6 +76,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -101,6 +107,17 @@ public final class ExamplePlugin extends JavaPlugin {
                 log.info("User: " + user);
             }
         });
+    }
+
+    public void getUserWithCompletionStage(UUID uuid) {
+        userRepository.getUserWithCompletionStage(uuid)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        exceptionLogger.accept(throwable);
+                    } else {
+                        log.info("User: " + user);
+                    }
+                });
     }
 
     @Override
@@ -141,6 +158,17 @@ final class UserRepository extends PluginSqlTaskSubmitter {
                     ? new User(uuid, rs.getString("email"))
                     : null;
         }, callback);
+    }
+
+    public CompletionStage<User> getUserWithCompletionStage(UUID uuid) {
+        String query = "SELECT * FROM `users` WHERE `uuid` = ?";
+        return submitSqlPreparedStatementTask(query, preparedStatement -> {
+            preparedStatement.setString(1, uuid.toString());
+            ResultSet rs = preparedStatement.executeQuery();
+            return rs.next()
+                    ? new User(uuid, rs.getString("email"))
+                    : null;
+        });
     }
 
     public void createTable() {
@@ -238,6 +266,30 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
             return "4";
         }, resultExceptionLogger);
     }
+
+    public void submittingTasksWhichReturnCompletionStages() {
+        submitSqlConnectionTask(connection -> {
+            // ...do something with the connection
+            return "1";
+        });
+
+        submitSqlStatementTask(statement -> {
+            // ...do something with the statement
+            return "2";
+        });
+
+        String query = "SELECT * FROM ...";
+        submitSqlPreparedStatementTask(query, preparedStatement -> {
+            // ...do something with the preparedStatement
+            return "3";
+        });
+
+        String call = "{call ... }";
+        submitSqlCallableStatementTask(call, callableStatement -> {
+            // ...do something with the callableStatement
+            return "4";
+        });
+    }
 }
 ```
 ## Import
@@ -245,36 +297,36 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>http://exlll.de:8081/artifactory/releases/</url>
+    <url>https://repo.exlll.de/artifactory/releases/</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bukkit</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bungee</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'http://exlll.de:8081/artifactory/releases/'
+        url 'https://repo.exlll.de/artifactory/releases/'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.0.0'
+    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.1.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.0.0'
+    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.1.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API

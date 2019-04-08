@@ -2,6 +2,8 @@ package de.exlll.databaselib.sql.submit;
 
 import java.sql.*;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -43,6 +45,24 @@ abstract class SqlTaskSubmitter {
     }
 
     /**
+     * Returns a new {@code CompletionStage} that is completed when the given
+     * {@code function} completes. The result of this {@code CompletionStage}
+     * is the same as that of the function.
+     *
+     * @param function function that defines operations on a {@code Connection}
+     *                 and returns a result
+     * @param <R>      the result type
+     * @return the new {@code CompletionStage}
+     */
+    protected final <R> CompletionStage<R> submitSqlConnectionTask(
+            CheckedSqlFunction<? super Connection, ? extends R> function
+    ) {
+        CompletableFuture<R> cf = new CompletableFuture<>();
+        submitSqlConnectionTask(function, wrapCompletableFuture(cf));
+        return cf;
+    }
+
+    /**
      * Submits a {@code Statement} task that returns a result.
      *
      * @param function function that defines operations on a {@code Statement}
@@ -76,6 +96,24 @@ abstract class SqlTaskSubmitter {
                 CheckedSqlFunction.from(action),
                 wrapCallback(toBiConsumer(callback))
         ));
+    }
+
+    /**
+     * Returns a new {@code CompletionStage} that is completed when the given
+     * {@code function} completes. The result of this {@code CompletionStage}
+     * is the same as that of the function.
+     *
+     * @param function function that defines operations on a {@code Statement}
+     *                 and returns a result
+     * @param <R>      the result type
+     * @return the new {@code CompletionStage}
+     */
+    protected final <R> CompletionStage<R> submitSqlStatementTask(
+            CheckedSqlFunction<? super Statement, ? extends R> function
+    ) {
+        CompletableFuture<R> cf = new CompletableFuture<>();
+        submitSqlStatementTask(function, wrapCompletableFuture(cf));
+        return cf;
     }
 
     /**
@@ -117,6 +155,25 @@ abstract class SqlTaskSubmitter {
     }
 
     /**
+     * Returns a new {@code CompletionStage} that is completed when the given
+     * {@code function} completes. The result of this {@code CompletionStage}
+     * is the same as that of the function.
+     *
+     * @param function function that defines operations on a {@code PreparedStatement}
+     *                 and returns a result
+     * @param <R>      the result type
+     * @return the new {@code CompletionStage}
+     */
+    protected final <R> CompletionStage<R> submitSqlPreparedStatementTask(
+            String query,
+            CheckedSqlFunction<? super PreparedStatement, ? extends R> function
+    ) {
+        CompletableFuture<R> cf = new CompletableFuture<>();
+        submitSqlPreparedStatementTask(query, function, wrapCompletableFuture(cf));
+        return cf;
+    }
+
+    /**
      * Submits a {@code CallableStatement} task that returns a result.
      *
      * @param function function that defines operations on a {@code CallableStatement}
@@ -155,6 +212,25 @@ abstract class SqlTaskSubmitter {
     }
 
     /**
+     * Returns a new {@code CompletionStage} that is completed when the given
+     * {@code function} completes. The result of this {@code CompletionStage}
+     * is the same as that of the function.
+     *
+     * @param function function that defines operations on a {@code CallableStatement}
+     *                 and returns a result
+     * @param <R>      the result type
+     * @return the new {@code CompletionStage}
+     */
+    protected final <R> CompletionStage<R> submitSqlCallableStatementTask(
+            String query,
+            CheckedSqlFunction<? super CallableStatement, ? extends R> function
+    ) {
+        CompletableFuture<R> cf = new CompletableFuture<>();
+        submitSqlCallableStatementTask(query, function, wrapCompletableFuture(cf));
+        return cf;
+    }
+
+    /**
      * Returns a {@code Connection} directly from the pool.
      * <p>
      * The connection must manually be closed after usage.
@@ -187,6 +263,32 @@ abstract class SqlTaskSubmitter {
             BiConsumer<? super R, ? super Throwable> callback
     ) {
         return Objects.requireNonNull(callback);
+    }
+
+    /**
+     * Wraps the {@code CompletableFuture} with a {@code BiConsumer} that completes
+     * the future when the {@code BiConsumer#accept} method is called.
+     * <p>
+     * The {@code CompletableFuture} is completed exceptionally if the second argument
+     * to the accept method is non null. Otherwise, it completes normally.
+     *
+     * @param completableFuture {@code CompletableFuture} that is wrapped
+     * @param <R>               the result type
+     * @return a {@code BiConsumer} that completes the {@code completableFuture} when
+     * its {@code accept} method is called.
+     * @throws NullPointerException if {@code completableFuture} is null
+     */
+    <R> BiConsumer<? super R, ? super Throwable> wrapCompletableFuture(
+            CompletableFuture<R> completableFuture
+    ) {
+        Objects.requireNonNull(completableFuture);
+        return wrapCallback((result, throwable) -> {
+            if (throwable != null) {
+                completableFuture.completeExceptionally(throwable);
+            } else {
+                completableFuture.complete(result);
+            }
+        });
     }
 
     /**
