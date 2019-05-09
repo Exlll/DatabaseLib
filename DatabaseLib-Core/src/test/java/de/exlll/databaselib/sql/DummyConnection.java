@@ -1,12 +1,26 @@
 package de.exlll.databaselib.sql;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
 public class DummyConnection implements Connection {
+    private DummyStatement lastStatement;
+
+    public DummyStatement getLastStatement() {
+        return lastStatement;
+    }
+
     public static class DummyStatement implements Statement {
+        private final List<String> executedQueries = new ArrayList<>();
+
+        public List<String> getExecutedQueries() {
+            return executedQueries;
+        }
+
         @Override
         public ResultSet executeQuery(String sql) {
             return null;
@@ -79,7 +93,7 @@ public class DummyConnection implements Connection {
 
         @Override
         public boolean execute(String sql) {
-            return false;
+            return executedQueries.add(sql);
         }
 
         @Override
@@ -231,7 +245,7 @@ public class DummyConnection implements Connection {
 
     @Override
     public Statement createStatement() {
-        return null;
+        return this.lastStatement = new DummyStatement();
     }
 
     @Override

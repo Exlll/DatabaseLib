@@ -26,10 +26,63 @@ Some examples:
 - if you return a `String`, pass a `BiConsumer<String, Throwable>`
 - in general: if you return something of type `R`, pass a `BiConsumer<? super R, Throwable>`
 
+<details>
+ <summary>Usage example</summary>
+
+```java
+public static final class UserRepo extends PluginSqlTaskSubmitter {
+    public UserRepo(JavaPlugin plugin) { super(plugin); }
+
+    public void deleteUser(UUID uuid, Consumer<Throwable> callback) {
+        String query = "DELETE FROM `users` WHERE `uuid` = ?";
+        submitSqlPreparedStatementTask(query, preparedStatement -> {
+            preparedStatement.setString(1, uuid.toString());
+            preparedStatement.execute();
+        }, callback);
+    }
+
+    public void getUser(UUID uuid, BiConsumer<User, Throwable> callback) {
+        String query = "SELECT * FROM `users` WHERE `uuid` = ?";
+        submitSqlPreparedStatementTask(query, preparedStatement -> {
+            preparedStatement.setString(1, uuid.toString());
+            ResultSet rs = preparedStatement.executeQuery();
+            return rs.next()
+                    ? new User(uuid.toString(), rs.getString("email"))
+                    : null;
+        }, callback);
+    }
+}
+```
+</details>
+
 #### Task submission without callbacks (new in 3.1.0)
-You can submit tasks which don't require a callback method and which return a
-`CompletionStage`. The result of the `CompletionStage` is the result of the
+You can submit tasks which don't require a callback method and which instead return
+a `CompletionStage`. The result of the `CompletionStage` is the result of the
 function that is given when the task is submitted.
+
+<details>
+ <summary>Usage example</summary>
+
+```java
+public static final class UserRepo extends PluginSqlTaskSubmitter {
+    public UserRepo(JavaPlugin plugin) { super(plugin); }
+
+    public CompletionStage<List<User>> getUsers() {
+        String sql = "SELECT * FROM `users`";
+        return submitSqlPreparedStatementTask(sql, preparedStatement -> {
+            List<User> users = new ArrayList<>();
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String uuid = resultSet.getString("uuid");
+                String name = resultSet.getString("name");
+                users.add(new User(uuid, name));
+            }
+            return users;
+        });
+    }
+}
+```
+</details>
 
 #### Asynchronous execution of tasks
 All tasks that are submitted through one of the different `submit...` methods
@@ -64,6 +117,29 @@ connection pool by using the static factory methods of the `SqlConnectionPool` c
 To use these methods you have to pass a `SqlPoolConfig` instance which can be created by
 using a `SqlPoolConfig.Builder`. If you want your users to be able to manually configure
 your pool from a file, you can use a `SqlPoolConfiguration` to store its options.
+
+#### ScriptRunner
+A `ScriptRunner` is a utility class that lets you execute SQL scripts. An SQL script is a
+file that contains SQL queries delimited by ';' (semicolon). You can create a `ScriptRunner`
+by passing an instance of a `Reader` and a `Connection` to its constructor. A `ScriptRunner`
+has the ability to replace any part of a query prior to executing it.
+
+<details>
+ <summary>Usage example</summary>
+
+```java
+try (Reader reader = new FileReader("my_script.sql");
+     Connection connection = getConnection()) {
+
+    ScriptRunner runner = new ScriptRunner(reader, connection);
+    runner.setReplacements(Map.of("%USER%", "user1"));
+    runner.runScript();
+
+} catch (IOException | SQLException e) {
+    e.printStackTrace();
+}
+```
+</details>
 
 ## Examples
 #### Complete Bukkit plugin example
@@ -304,14 +380,14 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bukkit</artifactId>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bungee</artifactId>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 #### Gradle
@@ -323,10 +399,10 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.1.0'
+    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.2.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.1.0'
+    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.2.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API
