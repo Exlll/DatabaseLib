@@ -2,25 +2,21 @@ allprojects {
     group 'de.exlll'
     version '3.2.0'
 }
+
 subprojects {
     apply plugin: 'java'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.11
+    targetCompatibility = 1.11
 
     repositories {
         mavenCentral()
-        maven { url 'http://exlll.de:8081/artifactory/releases/' }
-    }
-
-    configurations {
-        bundle
-        bundleWithPlugins
+        maven { url 'https://repo.terraconia.de/artifactory/terraconia-repos' }
+        maven { url 'https://papermc.io/repo/repository/maven-public/' }
     }
 
     dependencies {
-        bundle group: 'com.zaxxer', name: 'HikariCP', version: '3.1.0'
-        compile group: 'de.exlll', name: 'configlib-core', version: '2.+'
+        compileOnly group: 'de.exlll', name: 'configlib-core', version: '2.2.0'
         testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
         testCompile group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.2.0'
         testCompile group: 'org.junit.platform', name: 'junit-platform-suite-api', version: '1.2.0'
@@ -34,37 +30,26 @@ buildscript {
 }
 if (project.hasProperty("local_script")) {
     apply from: file(local_script + "/build.local.gradle")
-}
-
-project(':databaselib-core') {
-    dependencies {
-        compile group: 'com.zaxxer', name: 'HikariCP', version: '3.1.0'
+    subprojects {
+        shadowJar {
+            relocate 'com.zaxxer.hikari', 'de.exlll.databaselib.com.zaxxer.hikari'
+            relocate 'org.slf4j', 'de.exlll.databaselib.org.slf4j'
+        }
     }
+}
+project(':databaselib-core') {
+    dependencies { compile group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5' }
 }
 project(':databaselib-bukkit') {
     repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
-    dependencies {
-        compile group: 'org.bukkit', name: 'bukkit', version: '1.12.2-R0.1-SNAPSHOT'
-    }
+    dependencies { compileOnly 'org.spigotmc:spigot-api:1.16.4-R0.1-SNAPSHOT' }
 }
 project(':databaselib-bungee') {
-    repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
-    dependencies {
-        compile group: 'net.md-5', name: 'bungeecord-api', version: '1.12-SNAPSHOT'
-    }
+    repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
+    dependencies { compileOnly 'net.md-5:bungeecord-api:1.16-R0.3' }
 }
 
 configure([project(':databaselib-bukkit'), project(':databaselib-bungee')]) {
-    dependencies {
-        compile project(':databaselib-core')
-    }
-    jar {
-        from { project(':databaselib-core').sourceSets.main.output }
-        from { configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) } }
-    }
-    task bundleWithPlugins(type: Jar, group: 'build') {
-        from { project(':databaselib-core').sourceSets.main.output }
-        from { configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) } }
-        from { configurations.bundleWithPlugins.collect { it.isDirectory() ? it : zipTree(it) } }
-    }
+    dependencies { compile project(':databaselib-core') }
+    jar { from { project(':databaselib-core').sourceSets.main.output } }
 }

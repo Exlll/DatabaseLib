@@ -5,3 +5,5 @@ version: 3.2.0
 main: de.exlll.databaselib.DatabaseLib
 
 depend: ['ConfigLib']
+
+api-version: 1.14
