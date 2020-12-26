@@ -119,6 +119,7 @@ abstract class SqlTaskSubmitter {
     /**
      * Submits a {@code PreparedStatement} task that returns a result.
      *
+     * @param query    the query to be executed
      * @param function function that defines operations on a {@code PreparedStatement}
      *                 and returns a result
      * @param callback callback that accepts the result and informs about
@@ -138,6 +139,7 @@ abstract class SqlTaskSubmitter {
     /**
      * Submits a {@code PreparedStatement} task that doesn't return a result.
      *
+     * @param query    the query to be executed
      * @param action   action that defines operations on a {@code PreparedStatement}
      * @param callback callback that informs about exceptions. If no exception
      *                 occurred, the accepted {@code Throwable} is null.
@@ -159,6 +161,7 @@ abstract class SqlTaskSubmitter {
      * {@code function} completes. The result of this {@code CompletionStage}
      * is the same as that of the function.
      *
+     * @param query    the query to be executed
      * @param function function that defines operations on a {@code PreparedStatement}
      *                 and returns a result
      * @param <R>      the result type
@@ -176,6 +179,7 @@ abstract class SqlTaskSubmitter {
     /**
      * Submits a {@code CallableStatement} task that returns a result.
      *
+     * @param query    the query to be executed
      * @param function function that defines operations on a {@code CallableStatement}
      *                 and returns a result
      * @param callback callback that accepts the result and informs about
@@ -195,6 +199,7 @@ abstract class SqlTaskSubmitter {
     /**
      * Submits a {@code CallableStatement} task that doesn't return a result.
      *
+     * @param query    the query to be executed
      * @param action   action that defines operations on a {@code CallableStatement}
      * @param callback callback that informs about exceptions. If no exception
      *                 occurred, the accepted {@code Throwable} is null.
@@ -216,6 +221,7 @@ abstract class SqlTaskSubmitter {
      * {@code function} completes. The result of this {@code CompletionStage}
      * is the same as that of the function.
      *
+     * @param query    the query to be executed
      * @param function function that defines operations on a {@code CallableStatement}
      *                 and returns a result
      * @param <R>      the result type

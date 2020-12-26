@@ -373,41 +373,38 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>https://repo.exlll.de/artifactory/releases/</url>
+    <url>https://repo.terraconia.de/artifactory/terraconia-repos</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bukkit</artifactId>
-    <version>3.2.0</version>
+    <version>3.3.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bungee</artifactId>
-    <version>3.2.0</version>
+    <version>3.3.0</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'https://repo.exlll.de/artifactory/releases/'
+        url 'https://repo.terraconia.de/artifactory/terraconia-repos'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.2.0'
+    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.3.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.2.0'
+    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.3.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API
 or disable transitive lookups. This project uses both of these APIs, so if you
 need an example of how to import them using Gradle, take a look at the `build.gradle`.
-
-If, for some reason, you have SSL errors that you're unable to resolve, you can
-use `http://exlll.de:8081/artifactory/releases/` as the repository instead.

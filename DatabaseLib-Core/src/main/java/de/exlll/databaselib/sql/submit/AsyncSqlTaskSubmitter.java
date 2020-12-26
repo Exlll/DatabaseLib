@@ -8,12 +8,12 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 
-abstract class AsyncSqlTaskSubmitter extends SqlTaskSubmitter {
+public abstract class AsyncSqlTaskSubmitter extends SqlTaskSubmitter {
     private final SqlConnectionPool connectionPool;
     private final Executor syncExecutor;
     private final Executor asyncExecutor;
 
-    AsyncSqlTaskSubmitter(
+    protected AsyncSqlTaskSubmitter(
             SqlConnectionPool connectionPool,
             Executor syncExecutor,
             Executor asyncExecutor
