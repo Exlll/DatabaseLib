@@ -109,12 +109,21 @@ final class UserRepository extends PluginSqlTaskSubmitter {
         try (Connection connection = getConnection();
              Statement stmt = connection.createStatement()) {
 
-            stmt.execute("CREATE TABLE IF NOT EXISTS `users` (" +
-                    "`uuid` VARCHAR(36) PRIMARY KEY," +
-                    "`email` VARCHAR(36))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS users(" +
+                         "  uuid  VARCHAR(36) NOT NULL PRIMARY KEY," +
+                         "  email VARCHAR(36)" +
+                         ")");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void createTableSync() {
+        String query = "CREATE TABLE IF NOT EXISTS users(" +
+                       "    uuid  VARCHAR(36) NOT NULL PRIMARY KEY," +
+                       "    email VARCHAR(36)" +
+                       ")";
+        boolean result = applyStatement(statement -> statement.execute(query));
     }
 
 

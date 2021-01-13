@@ -1,6 +1,6 @@
 allprojects {
     group 'de.exlll'
-    version '3.3.0'
+    version '3.4.0'
 }
 
 subprojects {
@@ -17,10 +17,10 @@ subprojects {
 
     dependencies {
         compileOnly group: 'de.exlll', name: 'configlib-core', version: '2.2.0'
-        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
-        testCompile group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.2.0'
-        testCompile group: 'org.junit.platform', name: 'junit-platform-suite-api', version: '1.2.0'
-        testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.6.28'
+        testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     }
 }
 buildscript {

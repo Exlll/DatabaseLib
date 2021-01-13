@@ -311,4 +311,117 @@ abstract class SqlTaskSubmitter {
         Objects.requireNonNull(consumer);
         return (o, throwable) -> consumer.accept(throwable);
     }
+
+    /**
+     * Applies a {@code Connection} to the given function. The functions is
+     * executed in the same thread as this method. Any {@code SQLException}
+     * that is thrown is caught and rethrown wrapped in a {@code RuntimeException}.
+     * <p>
+     * Because this method calls {@link #getConnection()} to acquire a
+     * {@code Connection}, this call might be blocking.
+     *
+     * @param function the function to call
+     * @param <T>      the type of the result of the function
+     * @return the function result
+     * @throws NullPointerException if {@code function} is null
+     * @throws RuntimeException     if a database access occurs or if the given
+     *                              function throws an {@code SQLException}
+     */
+    protected final <T> T applyConnection(
+            CheckedSqlFunction<? super Connection, ? extends T> function
+    ) {
+        Objects.requireNonNull(function, "The function must not be null.");
+        try (Connection connection = getConnection()) {
+            return function.apply(connection);
+        } catch (SQLException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    /**
+     * Applies a {@code Statement} to the given function. The functions is
+     * executed in the same thread as this method. Any {@code SQLException}
+     * that is thrown is caught and rethrown wrapped in a {@code RuntimeException}.
+     * <p>
+     * Because this method calls {@link #getConnection()} to acquire a
+     * {@code Connection}, this call might be blocking.
+     *
+     * @param function the function to call
+     * @param <T>      the type of the result of the function
+     * @return the function result
+     * @throws NullPointerException if {@code function} is null
+     * @throws RuntimeException     if a database access occurs or if the given
+     *                              function throws an {@code SQLException}
+     */
+    protected final <T> T applyStatement(
+            CheckedSqlFunction<? super Statement, ? extends T> function
+    ) {
+        Objects.requireNonNull(function, "The function must not be null.");
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            return function.apply(statement);
+        } catch (SQLException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    /**
+     * Applies a {@code PreparedStatement} to the given function. The functions is
+     * executed in the same thread as this method. Any {@code SQLException}
+     * that is thrown is caught and rethrown wrapped in a {@code RuntimeException}.
+     * <p>
+     * Because this method calls {@link #getConnection()} to acquire a
+     * {@code Connection}, this call might be blocking.
+     *
+     * @param query    the query to be executed
+     * @param function the function to call
+     * @param <T>      the type of the result of the function
+     * @return the function result
+     * @throws NullPointerException if any argument is null
+     * @throws RuntimeException     if a database access occurs or if the given
+     *                              function throws an {@code SQLException}
+     */
+    protected final <T> T applyPreparedStatement(
+            String query,
+            CheckedSqlFunction<? super PreparedStatement, ? extends T> function
+    ) {
+        Objects.requireNonNull(query, "The query must not be null.");
+        Objects.requireNonNull(function, "The function must not be null.");
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            return function.apply(statement);
+        } catch (SQLException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    /**
+     * Applies a {@code CallableStatement} to the given function. The functions is
+     * executed in the same thread as this method. Any {@code SQLException}
+     * that is thrown is caught and rethrown wrapped in a {@code RuntimeException}.
+     * <p>
+     * Because this method calls {@link #getConnection()} to acquire a
+     * {@code Connection}, this call might be blocking.
+     *
+     * @param query    the query to be executed
+     * @param function the function to call
+     * @param <T>      the type of the result of the function
+     * @return the function result
+     * @throws NullPointerException if any argument is null
+     * @throws RuntimeException     if a database access occurs or if the given
+     *                              function throws an {@code SQLException}
+     */
+    protected final <T> T applyCallableStatement(
+            String query,
+            CheckedSqlFunction<? super CallableStatement, ? extends T> function
+    ) {
+        Objects.requireNonNull(query, "The query must not be null.");
+        Objects.requireNonNull(function, "The function must not be null.");
+        try (Connection connection = getConnection();
+             CallableStatement statement = connection.prepareCall(query)) {
+            return function.apply(statement);
+        } catch (SQLException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
 }

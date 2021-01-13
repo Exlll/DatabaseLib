@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CheckedSqlFunctionTest {

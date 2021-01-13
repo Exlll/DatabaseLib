@@ -4,7 +4,7 @@ import de.exlll.databaselib.sql.DummyConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -12,10 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class SqlTaskSubmitterTest {
     private TestSubmitter submitter;
@@ -228,9 +229,149 @@ class SqlTaskSubmitterTest {
                 .exceptionally(throwable -> callCounter.addAndGet(4));
     }
 
+    @Test
+    void applyConnectionRequiresNonNullFunction() {
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyConnection(null)
+        );
+        assertThat(exception.getMessage(), is("The function must not be null."));
+    }
+
+    @Test
+    void applyConnectionCallsGetConnection() {
+        submitter.applyConnection(connection -> null);
+        assertThat(submitter.getInteger(), is(20));
+    }
+
+    @Test
+    void applyConnectionAppliesConnection() {
+        Connection connection = submitter.applyConnection(c -> c);
+        assertThat(connection, sameInstance(submitter.connection));
+    }
+
+    @Test
+    void applyConnectionRethrowsSqlExceptionsAsRuntimeExceptions() {
+        SQLException test = new SQLException();
+        CheckedSqlFunction<Connection, ?> function = connection -> { throw test; };
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> submitter.applyConnection(function)
+        );
+        assertThat(exception.getCause(), sameInstance(test));
+    }
+
+    @Test
+    void applyStatementRequiresNonNullFunction() {
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyStatement(null)
+        );
+        assertThat(exception.getMessage(), is("The function must not be null."));
+    }
+
+    @Test
+    void applyStatementCallsGetConnection() {
+        submitter.applyStatement(statement -> null);
+        assertThat(submitter.getInteger(), is(20));
+    }
+
+    @Test
+    void applyStatementAppliesStatement() {
+        Statement statement = submitter.applyStatement(s -> s);
+        assertThat(statement, sameInstance(submitter.connection.getLastStatement()));
+    }
+
+    @Test
+    void applyStatementRethrowsSqlExceptionsAsRuntimeExceptions() {
+        SQLException test = new SQLException();
+        CheckedSqlFunction<Statement, ?> function = statement -> { throw test; };
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> submitter.applyStatement(function)
+        );
+        assertThat(exception.getCause(), sameInstance(test));
+    }
+
+    @Test
+    void applyPreparedStatementRequiresNonNullArguments() {
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyPreparedStatement(null, s -> null)
+        );
+        assertThat(exception.getMessage(), is("The query must not be null."));
+
+        exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyPreparedStatement("", null)
+        );
+        assertThat(exception.getMessage(), is("The function must not be null."));
+    }
+
+    @Test
+    void applyPreparedStatementCallsGetConnection() {
+        submitter.applyPreparedStatement("", statement -> null);
+        assertThat(submitter.getInteger(), is(20));
+    }
+
+    @Test
+    void applyPreparedStatementAppliesStatement() {
+        submitter.applyPreparedStatement("SELECT 1", s -> s);
+        verify(submitter.connection).prepareStatement("SELECT 1");
+    }
+
+    @Test
+    void applyPreparedStatementRethrowsSqlExceptionsAsRuntimeExceptions() {
+        SQLException test = new SQLException();
+        CheckedSqlFunction<PreparedStatement, ?> function = statement -> { throw test; };
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> submitter.applyPreparedStatement("", function)
+        );
+        assertThat(exception.getCause(), sameInstance(test));
+    }
+
+    @Test
+    void applyCallableStatementRequiresNonNullArguments() {
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyCallableStatement(null, s -> null)
+        );
+        assertThat(exception.getMessage(), is("The query must not be null."));
+
+        exception = assertThrows(
+                NullPointerException.class,
+                () -> submitter.applyCallableStatement("", null)
+        );
+        assertThat(exception.getMessage(), is("The function must not be null."));
+    }
+
+    @Test
+    void applyCallableStatementCallsGetConnection() {
+        submitter.applyCallableStatement("", statement -> null);
+        assertThat(submitter.getInteger(), is(20));
+    }
+
+    @Test
+    void applyCallableStatementAppliesStatement() {
+        submitter.applyCallableStatement("SELECT 1", s -> s);
+        verify(submitter.connection).prepareCall("SELECT 1");
+    }
+
+    @Test
+    void applyCallableStatementRethrowsSqlExceptionsAsRuntimeExceptions() {
+        SQLException test = new SQLException();
+        CheckedSqlFunction<CallableStatement, ?> function = statement -> { throw test; };
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> submitter.applyCallableStatement("", function)
+        );
+        assertThat(exception.getCause(), sameInstance(test));
+    }
+
     private static final class TestSubmitter extends SqlTaskSubmitter {
         private final AtomicInteger integer = new AtomicInteger();
-        private final DummyConnection connection = new DummyConnection();
+        private final DummyConnection connection = spy(new DummyConnection());
 
         public int getInteger() {
             return integer.get();
@@ -249,7 +390,8 @@ class SqlTaskSubmitterTest {
 
         @Override
         protected Connection getConnection() {
-            return null;
+            integer.addAndGet(20);
+            return connection;
         }
 
         @Override

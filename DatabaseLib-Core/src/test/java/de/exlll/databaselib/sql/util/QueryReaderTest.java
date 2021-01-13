@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 class QueryReaderTest {
     public static final String SQL_INPUT = "CREATE TABLE IF NOT EXISTS `test`\n" +

@@ -110,8 +110,25 @@ block wherever possible when acquiring them this way.
 (e.g. because of the pool being empty), the thread in which this method
 is called will be blocked.
 
+**(new in 3.4.0)** Instead of using a call to `getConnection()` you can also use any of 
+`apply...` methods. These methods call `getConnection()` for you but try to reduce
+boilerplate by catching any occurring `SQLExceptions` and rethrowing them wrapped in 
+`RuntimeExceptions`.
+
+<details>
+ <summary>Usage example</summary>
+
+```java
+String query = "CREATE TABLE IF NOT EXISTS users(" +
+               "    uuid  VARCHAR(36) NOT NULL PRIMARY KEY," +
+               "    email VARCHAR(36)" +
+               ")";
+boolean result = applyStatement(statement -> statement.execute(query));
+```
+</details>
+
 #### Creating your own connection pools
-If your application submits many long-running tasks or you have some reason that
+If your application submits many long-running tasks, or you have some reason that
 makes it necessary for you to manage your own set of `Connection`s, you can instantiate a
 connection pool by using the static factory methods of the `SqlConnectionPool` class.
 To use these methods you have to pass a `SqlPoolConfig` instance which can be created by
@@ -380,14 +397,14 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bukkit</artifactId>
-    <version>3.3.0</version>
+    <version>3.4.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>databaselib-bungee</artifactId>
-    <version>3.3.0</version>
+    <version>3.4.0</version>
 </dependency>
 ```
 #### Gradle
@@ -399,10 +416,10 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.3.0'
+    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.4.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.3.0'
+    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.4.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API

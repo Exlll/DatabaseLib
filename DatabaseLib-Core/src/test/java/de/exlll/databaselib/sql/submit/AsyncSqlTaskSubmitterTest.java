@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class AsyncSqlTaskSubmitterTest {
     private DummySqlConnectionPool dummySqlConnectionPool;
