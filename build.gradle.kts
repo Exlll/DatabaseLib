@@ -19,8 +19,16 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") }
         maven { url = uri("https://papermc.io/repo/repository/maven-public/") }
+        maven {
+            url = uri("https://maven.pkg.github.com/Exlll/ConfigLib")
+            credentials {
+                username = project.findProperty("github.actor") as String?
+                        ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("github.token") as String?
+                        ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 
     dependencies {
