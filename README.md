@@ -390,7 +390,7 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>https://repo.terraconia.de/artifactory/terraconia-repos</url>
+    <url>https://maven.pkg.github.com/Exlll/DatabaseLib</url>
 </repository>
 
 <!-- for Bukkit plugins -->
@@ -409,19 +409,28 @@ final class ExampleSubmitter extends PluginSqlTaskSubmitter {
 ```
 #### Gradle
 ```groovy
-repositories {
-    maven {
-        url 'https://repo.terraconia.de/artifactory/terraconia-repos'
-    }
-}
+repositories { maven { url 'https://maven.pkg.github.com/Exlll/DatabaseLib' } }
+
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'databaselib-bukkit', version: '3.4.0'
-
+    implementation group: 'de.exlll', name: 'databaselib-bukkit', version: '3.4.0'
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'databaselib-bungee', version: '3.4.0'
+    implementation group: 'de.exlll', name: 'databaselib-bungee', version: '3.4.0'
 }
 ```
+
+```kotlin
+repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/DatabaseLib") } }
+
+dependencies {
+    // for Bukkit plugins
+    implementation("de.exlll:databaselib-bukkit:3.4.0")
+    // for Bungee plugins
+    implementation("de.exlll:databaselib-bungee:3.4.0")
+}
+```
+
+
 Additionally, you either have to import the Bukkit or BungeeCord API
 or disable transitive lookups. This project uses both of these APIs, so if you
-need an example of how to import them using Gradle, take a look at the `build.gradle`.
+need an example of how to import them using Gradle, take a look at the `build.gradle.kts`.
