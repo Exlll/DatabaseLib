@@ -1,15 +1,13 @@
-name: test-on-pr-or-dev-push
+name: publish-on-master-push
 
 on:
-  pull_request:
-    paths-ignore:
-      - '**/README.md'
   push:
-    branches: [ dev ]
+    branches: [ master ]
     paths-ignore:
       - '**/README.md'
+
 jobs:
-  test:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,8 +16,8 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '16'
-      - name: Test with Gradle
-        run: ./gradlew test
+      - name: Build with Gradle
+        run: ./gradlew build
       - name: Archive test reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
@@ -27,3 +25,8 @@ jobs:
           name: test-reports
           path: |
             build/reports/**/*
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
