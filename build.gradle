@@ -11,7 +11,7 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url 'https://repo.terraconia.de/artifactory/terraconia-repos' }
+        maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' }
         maven { url 'https://papermc.io/repo/repository/maven-public/' }
     }
 
@@ -25,11 +25,11 @@ subprojects {
 }
 buildscript {
     if (project.hasProperty("local_script")) {
-        apply from: file(local_script + "/buildscript.local.gradle"), to: buildscript
+        apply from: file(local_script + "/buildscript.gradle"), to: buildscript
     }
 }
 if (project.hasProperty("local_script")) {
-    apply from: file(local_script + "/build.local.gradle")
+    apply from: file(local_script + "/build.gradle")
     subprojects {
         shadowJar {
             relocate 'com.zaxxer.hikari', 'de.exlll.databaselib.com.zaxxer.hikari'
@@ -38,7 +38,7 @@ if (project.hasProperty("local_script")) {
     }
 }
 project(':databaselib-core') {
-    dependencies { compile group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5' }
+    dependencies { implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5' }
 }
 project(':databaselib-bukkit') {
     repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
@@ -50,6 +50,6 @@ project(':databaselib-bungee') {
 }
 
 configure([project(':databaselib-bukkit'), project(':databaselib-bungee')]) {
-    dependencies { compile project(':databaselib-core') }
+    dependencies { implementation project(':databaselib-core') }
     jar { from { project(':databaselib-core').sourceSets.main.output } }
 }
